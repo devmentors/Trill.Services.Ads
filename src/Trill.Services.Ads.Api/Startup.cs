@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Convey;
 using Convey.Types;
 using Convey.WebApi;
@@ -14,7 +16,13 @@ namespace Trill.Services.Ads.Api
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers().AddNewtonsoftJson();
+            services.AddControllers()
+                .AddJsonOptions(x =>
+                {
+                    x.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                    x.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                    x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
             services.AddConvey().AddWebApi().AddCore().Build();
         }
 
@@ -31,10 +39,11 @@ namespace Trill.Services.Ads.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync(context.RequestServices.GetService<AppOptions>().Name);
-                });
+                endpoints.MapGet("/",
+                    async context =>
+                    {
+                        await context.Response.WriteAsync(context.RequestServices.GetService<AppOptions>().Name);
+                    });
             });
         }
     }
